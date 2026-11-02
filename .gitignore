@@ -1,0 +1,25 @@
+# python and virtual environments
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.python-version
+
+# editors and OS files
+.vscode/
+.idea/
+.DS_Store
+
+# documents (report, proposal, slides) are kept outside this repository
+*.doc
+*.docx
+*.pdf
+*.ppt
+*.pptx
+~$*
+
+# keys and passwords must never be committed
+.env
+kaggle.json

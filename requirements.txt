@@ -1,0 +1,28 @@
+# core data handling
+pandas>=2.2
+numpy>=1.26
+
+# models
+scikit-learn>=1.5
+xgboost>=2.1
+lightgbm>=4.5
+statsmodels>=0.14
+
+# plots
+matplotlib>=3.9
+seaborn>=0.13
+
+# notebooks
+jupyterlab>=4.2
+ipykernel>=6.29
+
+# dataset download (needs ~/.kaggle/kaggle.json)
+kaggle>=1.6
+
+# web app (phase 6)
+streamlit>=1.38
+
+# misc
+joblib>=1.4
+pyarrow>=17      # saving processed data as parquet
+tqdm>=4.66
