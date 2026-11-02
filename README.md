@@ -79,3 +79,4 @@ Choose the "Python 3 (food-demand)" kernel and run the notebooks in order.
 |---|---|
 | 01_download_dataset | downloads the data to `data/raw`, saves md5 checksums, quick check of rows / weeks / centres / meals |
 | 02_data_understanding | EDA plots and notes (missing weeks, price, promotions, autocorrelation, volatility), figures fig01-fig19 |
+| 03_data_preparation | cleaning, leak-free features (`src/features.py`), 4 leakage tests, saves `clean.parquet` and `history_features.parquet` to `data/processed` |
