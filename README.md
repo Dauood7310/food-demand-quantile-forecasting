@@ -20,6 +20,8 @@ https://www.kaggle.com/datasets/kannanaikkal/food-demand-forecasting
 456,548 rows: weekly orders of 51 meals in 77 fulfilment centres over 145 weeks, with price and promotion
 information. Used only for academic research, there is no personal data in it.
 
+The data files are already included in `data/raw`, so nothing needs to be downloaded.
+
 Files in `data/raw`:
 
 - `train.csv` - weekly orders per centre and meal, weeks 1-145 (target = `num_orders`)
@@ -71,28 +73,6 @@ python -m ipykernel install --user --name food-demand --display-name "Python 3 (
 
 If LightGBM or XGBoost give an error on a Mac, run `brew install libomp`.
 
-### Kaggle key (only needed to download the data again)
-
-The data is already in `data/raw`. To download it again with notebook 01 you need a Kaggle API key:
-
-1. kaggle.com -> your profile -> Settings -> API -> Create New Token (downloads `kaggle.json`)
-2. move it to the `.kaggle` folder in your user folder (Command Prompt):
-
-```bat
-mkdir %USERPROFILE%\.kaggle
-move %USERPROFILE%\Downloads\kaggle.json %USERPROFILE%\.kaggle\
-```
-
-On a Mac (optional):
-
-```bash
-mkdir -p ~/.kaggle
-mv ~/Downloads/kaggle.json ~/.kaggle/
-chmod 600 ~/.kaggle/kaggle.json
-```
-
-Never commit `kaggle.json` (it is in `.gitignore`).
-
 ## Running
 
 Activate the virtual environment (`.venv\Scripts\activate`, or `source .venv/bin/activate` on a Mac), then:
@@ -105,6 +85,6 @@ Choose the "Python 3 (food-demand)" kernel and run the notebooks in order.
 
 | Notebook | What it does |
 |---|---|
-| 01_download_dataset | downloads the data to `data/raw`, saves md5 checksums, quick check of rows / weeks / centres / meals |
+| 01_download_dataset | where the data comes from, md5 checksums and a quick check of rows / weeks / centres / meals (the data is already in `data/raw`, no need to run it) |
 | 02_data_understanding | EDA plots and notes (missing weeks, price, promotions, autocorrelation, volatility), figures fig01-fig19 |
 | 03_data_preparation | cleaning, leak-free features (`src/features.py`), 4 leakage tests, saves `clean.parquet` and `history_features.parquet` to `data/processed` |
