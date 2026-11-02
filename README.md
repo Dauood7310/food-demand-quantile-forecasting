@@ -41,11 +41,30 @@ results/tables/    results tables (csv)
 
 ## Setup
 
-Python 3.10 or newer (I used 3.13 on a Mac).
+Python 3.10 or newer (tested with Python 3.13). Open a terminal in the project folder first.
+
+### Windows
+
+Install Python from https://www.python.org/downloads/ and tick **"Add python.exe to PATH"** during the install.
+Then in Command Prompt or PowerShell:
+
+```bat
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python -m ipykernel install --user --name food-demand --display-name "Python 3 (food-demand)"
+```
+
+- If PowerShell says "running scripts is disabled on this system", run this once and try again:
+  `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
+- If LightGBM or XGBoost give a DLL error, install the Microsoft Visual C++ Redistributable (x64):
+  https://aka.ms/vs/17/release/vc_redist.x64.exe
+
+### macOS / Linux
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate        # on Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
 python -m ipykernel install --user --name food-demand --display-name "Python 3 (food-demand)"
 ```
@@ -57,7 +76,16 @@ If LightGBM or XGBoost give an error on Mac, run `brew install libomp`.
 The data is already in `data/raw`. To download it again with notebook 01 you need a Kaggle API key:
 
 1. kaggle.com -> your profile -> Settings -> API -> Create New Token (downloads `kaggle.json`)
-2. move it:
+2. move it to the `.kaggle` folder in your home folder:
+
+Windows (Command Prompt):
+
+```bat
+mkdir %USERPROFILE%\.kaggle
+move %USERPROFILE%\Downloads\kaggle.json %USERPROFILE%\.kaggle\
+```
+
+macOS / Linux:
 
 ```bash
 mkdir -p ~/.kaggle
@@ -68,6 +96,8 @@ chmod 600 ~/.kaggle/kaggle.json
 Never commit `kaggle.json` (it is in `.gitignore`).
 
 ## Running
+
+Activate the virtual environment (`.venv\Scripts\activate` on Windows, `source .venv/bin/activate` on macOS / Linux), then:
 
 ```bash
 jupyter lab
