@@ -41,12 +41,10 @@ results/tables/    results tables (csv)
 
 ## Setup
 
-Python 3.10 or newer (tested with Python 3.13). Open a terminal in the project folder first.
-
-### Windows
+The steps below are for a Windows machine. Python 3.10 or newer (tested with Python 3.13).
 
 Install Python from https://www.python.org/downloads/ and tick **"Add python.exe to PATH"** during the install.
-Then in Command Prompt or PowerShell:
+Then open Command Prompt or PowerShell in the project folder:
 
 ```bat
 python -m venv .venv
@@ -60,7 +58,9 @@ python -m ipykernel install --user --name food-demand --display-name "Python 3 (
 - If LightGBM or XGBoost give a DLL error, install the Microsoft Visual C++ Redistributable (x64):
   https://aka.ms/vs/17/release/vc_redist.x64.exe
 
-### macOS / Linux
+### Optional: Mac
+
+On a Mac the same steps are:
 
 ```bash
 python3 -m venv .venv
@@ -69,23 +69,21 @@ pip install -r requirements.txt
 python -m ipykernel install --user --name food-demand --display-name "Python 3 (food-demand)"
 ```
 
-If LightGBM or XGBoost give an error on Mac, run `brew install libomp`.
+If LightGBM or XGBoost give an error on a Mac, run `brew install libomp`.
 
 ### Kaggle key (only needed to download the data again)
 
 The data is already in `data/raw`. To download it again with notebook 01 you need a Kaggle API key:
 
 1. kaggle.com -> your profile -> Settings -> API -> Create New Token (downloads `kaggle.json`)
-2. move it to the `.kaggle` folder in your home folder:
-
-Windows (Command Prompt):
+2. move it to the `.kaggle` folder in your user folder (Command Prompt):
 
 ```bat
 mkdir %USERPROFILE%\.kaggle
 move %USERPROFILE%\Downloads\kaggle.json %USERPROFILE%\.kaggle\
 ```
 
-macOS / Linux:
+On a Mac (optional):
 
 ```bash
 mkdir -p ~/.kaggle
@@ -97,9 +95,9 @@ Never commit `kaggle.json` (it is in `.gitignore`).
 
 ## Running
 
-Activate the virtual environment (`.venv\Scripts\activate` on Windows, `source .venv/bin/activate` on macOS / Linux), then:
+Activate the virtual environment (`.venv\Scripts\activate`, or `source .venv/bin/activate` on a Mac), then:
 
-```bash
+```bat
 jupyter lab
 ```
 
