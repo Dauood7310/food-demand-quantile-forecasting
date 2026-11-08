@@ -1,0 +1,10 @@
+origin,model,max_depth,min_samples_leaf,min_child_weight,n_trees,num_leaves,min_child_samples
+115,Random Forest,16.0,20.0,,,,
+115,XGBoost,8.0,,10.0,121.0,,
+115,LightGBM,,,,159.0,255.0,500.0
+125,Random Forest,16.0,20.0,,,,
+125,XGBoost,8.0,,10.0,119.0,,
+125,LightGBM,,,,113.0,255.0,500.0
+135,Random Forest,16.0,20.0,,,,
+135,XGBoost,8.0,,10.0,126.0,,
+135,LightGBM,,,,244.0,63.0,100.0

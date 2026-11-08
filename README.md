@@ -89,3 +89,4 @@ Choose the "Python 3 (food-demand)" kernel and run the notebooks in order.
 | 02_data_understanding | EDA plots and notes (missing weeks, price, promotions, autocorrelation, volatility), figures fig01-fig19 |
 | 03_data_preparation | cleaning, leak-free features (`src/features.py`), 4 leakage tests, saves `clean.parquet` and `history_features.parquet` to `data/processed` |
 | 04_baselines | rolling-origin folds (`src/folds.py`), metrics (`src/metrics.py`), naive / 26-week moving average / Linear Regression baselines, results in `results/tables`, figure fig22 |
+| 05_tree_models | Random Forest, XGBoost and LightGBM (one global model, horizon as a feature), results in `results/tables`, Diebold-Mariano tests, figures fig23-fig25 |
