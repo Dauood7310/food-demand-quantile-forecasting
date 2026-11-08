@@ -1,0 +1,10 @@
+tau,model A,model B,DM statistic,p-value
+0.5,LightGBM,LightGBM point,-4.44,0.0
+0.5,LightGBM,Linear QR,-8.66,0.0
+0.5,LightGBM,XGBoost,-2.48,0.0132
+0.7,LightGBM,LightGBM point,-13.79,0.0
+0.7,LightGBM,Linear QR,-7.97,0.0
+0.7,LightGBM,XGBoost,1.22,0.2228
+0.9,LightGBM,LightGBM point,-22.7,0.0
+0.9,LightGBM,Linear QR,-6.09,0.0
+0.9,LightGBM,XGBoost,1.55,0.1207
