@@ -45,11 +45,11 @@ st.markdown(
     '''
 Use the menu on the left:
 
+- **Order planner** - pick a centre, a meal and your costs, and get a suggested order for each week
 - **The data** - what the dataset looks like, and the orders of any meal
 - **Accuracy results** - which model forecasts best (question 1)
 - **Quantile results** - forecasting a safe amount (question 2)
 - **Cost results** - waste, missed orders and cost (question 3)
-- **Order planner** - pick a centre, a meal and your costs, and get a suggested order for each week
 '''
 )
 st.info('All costs are simulated. The dataset has no real cost data, so the results are estimates, not real savings.')
