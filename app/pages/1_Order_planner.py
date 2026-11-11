@@ -13,7 +13,8 @@ st.write(
 )
 st.info(
     'The planner stands at the end of **week 135**. It uses only the data up to that week and plans '
-    'the next 10 weeks (**weeks 136-145**). Like a real planner, it does not know the real orders of those weeks.'
+    'the next 10 weeks (**weeks 136-145**). The forecast and the suggested order do not use the real orders of '
+    'those weeks. The real orders are shown in the table only so you can check the plan afterwards.'
 )
 st.caption('Tip: move the mouse over a small (?) icon to see what that item means.')
 
@@ -109,9 +110,11 @@ plan = pd.DataFrame({
     'Suggested order': quantity_at_tau(quantiles, tau).round().astype(int),
 })
 plan['Difference'] = plan['Suggested order'] - plan['Normal forecast']
+plan['Real orders'] = rows['num_orders'].astype(int).values      # only to check the plan, not used by it
 
 st.subheader('2. Plan for the next 10 weeks',
-             help='For each week: the normal forecast and the order this page suggests for your costs.')
+             help='For each week: the normal forecast, the order this page suggests for your costs, '
+                  'and (only to check) what customers really ordered.')
 col1, col2 = st.columns([1, 1.4])
 col1.dataframe(
     plan, hide_index=True, width='stretch',
@@ -130,10 +133,15 @@ col1.dataframe(
             'Difference', format='%+d',
             help='Suggested order minus normal forecast. A plus means: make this many meals more than the '
                  'normal forecast, to be safe. A minus means: make fewer, because waste is the bigger cost.'),
+        'Real orders': st.column_config.NumberColumn(
+            'Real orders',
+            help='How many meals customers really ordered in that week. A real planner would not know this yet. '
+                 'It is shown only to check the plan: it is not used to make the forecast or the suggested order.'),
     })
 col2.line_chart(plan, x='Week', y=['Normal forecast', 'Suggested order'],
                 color=['#1f77b4', '#d62728'], y_label='Meals')
-st.caption('Blue = normal forecast, red = suggested order. Weeks when the meal is not on the menu are not shown.')
+st.caption('Blue = normal forecast, red = suggested order. The real orders are only in the table, not in the chart. '
+           'Weeks when the meal is not on the menu are not shown.')
 
 total_normal = plan['Normal forecast'].sum()
 total_suggested = plan['Suggested order'].sum()
@@ -148,6 +156,15 @@ col3.metric('Difference', f'{total_difference:+,}',
 
 first = plan.iloc[0]
 more_or_fewer = 'more' if first['Difference'] >= 0 else 'fewer'
+
+# one sentence that checks the first week against the real orders
+gap = first['Suggested order'] - first['Real orders']
+if gap >= 0:
+    check_text = (f'in week {first["Week"]} the suggested order ({first["Suggested order"]:,}) was enough, '
+                  f'with {gap:,} meals left over.')
+else:
+    check_text = (f'in week {first["Week"]} the suggested order ({first["Suggested order"]:,}) was not enough: '
+                  f'{abs(gap):,} customers would have gone without a meal.')
 st.markdown(
     f'''
 **What the columns mean** (the examples use week {first["Week"]}, the first row)
@@ -159,6 +176,9 @@ st.markdown(
   ({tau * 100:.0f}%), so it should be enough in about {tau * 100:.0f} out of 100 weeks. *Example: {first["Suggested order"]:,} meals.*
 - **Difference** - suggested order minus normal forecast. *Example: {first["Difference"]:+,}, so the kitchen makes
   {abs(first["Difference"]):,} {more_or_fewer} meals than the normal forecast.*
+- **Real orders** - how many meals customers really ordered in that week. *Example: {first["Real orders"]:,} meals.*
+  A real planner would not know this number yet. It is shown only so you can check the plan:
+  {check_text}
 
 **The three boxes** add up all the weeks in the table: the normal forecast gives **{total_normal:,}** meals in total,
 the suggested order gives **{total_suggested:,}**, a difference of **{total_difference:+,}** meals.
