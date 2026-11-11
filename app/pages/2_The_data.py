@@ -1,11 +1,13 @@
 import streamlit as st
 
-from common import load_orders, show_figure
+from common import load_orders, show_figure, meal_names, centre_names
 
 st.set_page_config(page_title='The data', page_icon='📊', layout='wide')
 st.title('The data')
 
 orders = load_orders()
+meal_name = meal_names()
+centre_name = centre_names()
 
 st.write(
     'The data comes from a real meal delivery company (Genpact, shared on Kaggle). '
@@ -29,13 +31,14 @@ st.dataframe(preview, hide_index=True, width='stretch')
 st.subheader('Orders of one meal')
 st.write('Pick a centre and a meal to see its weekly orders.')
 col1, col2 = st.columns(2)
-centre = col1.selectbox('Centre', sorted(orders['center_id'].unique()), index=0)
-meals = sorted(orders.loc[orders['center_id'] == centre, 'meal_id'].unique())
-meal = col2.selectbox('Meal', meals)
+centre = col1.selectbox('Centre', sorted(orders['center_id'].unique()), index=0, format_func=lambda c: centre_name[c])
+meals = sorted(orders.loc[orders['center_id'] == centre, 'meal_id'].unique(), key=lambda m: meal_name[m])
+meal = col2.selectbox('Meal', meals, format_func=lambda m: meal_name[m])
 one = orders[(orders['center_id'] == centre) & (orders['meal_id'] == meal)]
 info = one.iloc[0]
-st.caption(f'Meal {meal}: {info["category"]}, {info["cuisine"]} cuisine. '
-           f'{len(one)} of 145 weeks have orders (missing weeks = the meal was not on offer).')
+st.caption(f'{meal_name[meal]} at {centre_name[centre]}. '
+           f'{len(one)} of 145 weeks have orders (missing weeks = the meal was not on offer). '
+           'The data has no real names, so meals and centres are shown by their type and number.')
 st.line_chart(one.set_index('week')['num_orders'], x_label='Week', y_label='Orders')
 
 st.subheader('What we learned from the data')

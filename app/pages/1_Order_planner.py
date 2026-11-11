@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-from common import load_forecasts, load_orders
+from common import load_forecasts, load_orders, meal_names, centre_names
 from src.simulation import TAUS, COST_RATIOS, critical_ratio, quantity_at_tau, simulate
 
 st.set_page_config(page_title='Order planner', page_icon='🧾', layout='wide')
@@ -19,18 +19,22 @@ st.caption('Tip: move the mouse over a small (?) icon to see what that item mean
 
 forecasts = load_forecasts()
 orders = load_orders()
+meal_name = meal_names()
+centre_name = centre_names()
 
 # 1. choices (every input has a help text, shown when the mouse is over the (?) icon)
 st.subheader('1. Your choices', help='Pick the kitchen, the meal and how costly a missed order is for you.')
 col1, col2, col3 = st.columns(3)
 centre = col1.selectbox(
-    'Centre', sorted(forecasts['center_id'].unique()), index=0,
-    help='The kitchen (fulfilment centre) that cooks and sends out the meals. '
-         'Each centre has a number. There are 77 centres in the data.')
-meals = sorted(forecasts.loc[forecasts['center_id'] == centre, 'meal_id'].unique())
+    'Centre', sorted(forecasts['center_id'].unique()), index=0, format_func=lambda c: centre_name[c],
+    help='The kitchen (fulfilment centre) that cooks and sends out the meals. There are 77 centres. '
+         'The data has no real names, so a centre is shown by its number, its type (A, B or C) '
+         'and the codes of its city and region.')
+meals = sorted(forecasts.loc[forecasts['center_id'] == centre, 'meal_id'].unique(), key=lambda m: meal_name[m])
 meal = col2.selectbox(
-    'Meal', meals,
-    help='The meal you want to plan for. Each meal has a number. '
+    'Meal', meals, format_func=lambda m: meal_name[m],
+    help='The meal you want to plan for. The data has no real meal names, so a meal is shown by its cuisine '
+         'and type, with its number (some meals have the same cuisine and type). '
          'Only the meals this centre sold in weeks 136-145 are in the list.')
 r = col3.select_slider(
     'A missed order costs ... times a wasted meal', options=COST_RATIOS, value=3,
@@ -45,8 +49,8 @@ info = orders[orders['meal_id'] == meal].iloc[0]
 col1, col2, col3 = st.columns(3)
 col1.metric(
     'Meal type', f'{info["category"]}',
-    help=f'The group this meal belongs to. Meal {meal} is in the group "{info["category"]}" '
-         f'and its cuisine is {info["cuisine"]}.')
+    help=f'The meal you picked: number {meal}, type "{info["category"]}", cuisine {info["cuisine"]}. '
+         f'It is planned for {centre_name[centre]}.')
 col2.metric(
     'Cost ratio', f'{r} to 1',
     help='Your choice above: one missed order costs this many times one wasted meal.')

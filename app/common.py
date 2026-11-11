@@ -35,5 +35,22 @@ def load_forecasts():
     return forecasts[forecasts['origin'] == 135]
 
 
+@st.cache_data
+def meal_names():
+    """Readable name for every meal number, e.g. 1062 -> 'Italian Beverages (meal 1062)'.
+    The data has no real meal names, only the category and the cuisine."""
+    meals = load_orders()[['meal_id', 'category', 'cuisine']].drop_duplicates()
+    return {row.meal_id: f'{row.cuisine} {row.category} (meal {row.meal_id})' for row in meals.itertuples()}
+
+
+@st.cache_data
+def centre_names():
+    """Readable name for every centre number, e.g. 10 -> 'Centre 10 (type B, city 590, region 56)'.
+    The data has no real centre names, only the type and the city and region codes."""
+    centres = load_orders()[['center_id', 'center_type', 'city_code', 'region_code']].drop_duplicates()
+    return {row.center_id: f'Centre {row.center_id} (type {str(row.center_type)[-1]}, city {row.city_code}, '
+                           f'region {row.region_code})' for row in centres.itertuples()}
+
+
 def show_figure(name, caption):
     st.image(os.path.join(FIGURE_DIR, name + '.png'), caption=caption, width='stretch')
