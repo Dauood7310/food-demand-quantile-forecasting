@@ -89,7 +89,9 @@ A small Streamlit app shows the results in simple words and has an order planner
 The saved results are already in this repository, so the app works right after the setup
 (the notebooks do not need to be run first).
 
-Pages: Home, Order planner, The data, Accuracy results, Quantile results, Cost results.
+Pages in the side menu: Home, Order planner, The data.
+Three more pages (Accuracy results, Quantile results, Cost results) are kept in `app/hidden_pages`.
+To show one again, move its file back into `app/pages` and restart the app.
 
 #### How to run the app on a Windows machine
 
