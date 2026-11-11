@@ -45,11 +45,11 @@ def meal_names():
 
 @st.cache_data
 def centre_names():
-    """Readable name for every centre number, e.g. 10 -> 'Centre 10 (type B, city 590, region 56)'.
-    The data has no real centre names, only the type and the city and region codes."""
+    """Readable name for every centre number, e.g. 10 -> 'Centre 10 (Type B, city code 590, region code 56)'.
+    The data is anonymous: it has no real centre or city names, only the type and the city and region CODES."""
     centres = load_orders()[['center_id', 'center_type', 'city_code', 'region_code']].drop_duplicates()
-    return {row.center_id: f'Centre {row.center_id} (type {str(row.center_type)[-1]}, city {row.city_code}, '
-                           f'region {row.region_code})' for row in centres.itertuples()}
+    return {row.center_id: f'Centre {row.center_id} (Type {str(row.center_type)[-1]}, city code {row.city_code}, '
+                           f'region code {row.region_code})' for row in centres.itertuples()}
 
 
 def show_figure(name, caption):

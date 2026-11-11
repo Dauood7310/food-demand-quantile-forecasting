@@ -28,8 +28,10 @@ col1, col2, col3 = st.columns(3)
 centre = col1.selectbox(
     'Centre', sorted(forecasts['center_id'].unique()), index=0, format_func=lambda c: centre_name[c],
     help='The kitchen (fulfilment centre) that cooks and sends out the meals. There are 77 centres. '
-         'The data has no real names, so a centre is shown by its number, its type (A, B or C) '
-         'and the codes of its city and region.')
+         'The company made the data anonymous, so there are no real centre or city names. '
+         'A centre is shown by its number, its type (A, B or C: the company\'s own label for the kind of centre) '
+         'and the code numbers of its city and region. Example: "city code 590" stands for one real city, '
+         'but the data does not say which one.')
 meals = sorted(forecasts.loc[forecasts['center_id'] == centre, 'meal_id'].unique(), key=lambda m: meal_name[m])
 meal = col2.selectbox(
     'Meal', meals, format_func=lambda m: meal_name[m],
