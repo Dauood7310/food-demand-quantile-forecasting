@@ -127,23 +127,55 @@ missed_help = ('Meals that customers wanted but the kitchen did not have, added 
 cost_help = (f'Wasted meals x 1 + missed orders x {r}. Lower is better. '
              'This is not real money: it counts in "wasted meals", because the data has no real prices.')
 
-st.write('**If we order the normal forecast**')
-col1, col2, col3 = st.columns(3)
-col1.metric('Wasted meals', f'{normal["Waste"]:.0f}', help=waste_help)
-col2.metric('Missed orders', f'{normal["Shortage"]:.0f}', help=missed_help)
-col3.metric('Cost', f'{normal["Cost"]:.0f}', help=cost_help)
+st.write(
+    'We look back at these 10 weeks and ask: **if the kitchen had made this many meals, what would have happened?** '
+    'We check two ways of ordering against what customers really ordered.'
+)
+st.markdown(
+    f'''
+- **Wasted meals** = meals that were made but nobody ordered. They are thrown away.
+- **Missed orders** = meals that customers wanted, but the kitchen had none left.
+- **Cost** = a score, not real money. Each wasted meal counts as **1** and each missed order counts as **{r}**
+  (your choice above). **Lower is better.**
+'''
+)
 
-st.write('**If we order the suggested amount**')
-col1, col2, col3 = st.columns(3)
-col1.metric('Wasted meals', f'{suggested["Waste"]:.0f}', help=waste_help)
-col2.metric('Missed orders', f'{suggested["Shortage"]:.0f}', help=missed_help)
-col3.metric('Cost', f'{suggested["Cost"]:.0f}', help=cost_help)
+
+def show_result(title, result):
+    # one row of three numbers, and the cost calculation in words below it
+    waste, missed, cost = result['Waste'], result['Shortage'], result['Cost']
+    st.write(f'**{title}**')
+    col1, col2, col3 = st.columns(3)
+    col1.metric('Wasted meals', f'{waste:,.0f}', help=waste_help)
+    col2.metric('Missed orders', f'{missed:,.0f}', help=missed_help)
+    col3.metric('Cost', f'{cost:,.0f}', help=cost_help)
+    st.caption(f'Cost = {waste:,.0f} wasted meals x 1  +  {missed:,.0f} missed orders x {r}  =  {cost:,.0f}')
+
+
+show_result('Way 1: make the normal forecast', normal)
+show_result('Way 2: make the suggested amount', suggested)
+
+def more_or_fewer(change):
+    # +30 -> "30 more", -30 -> "30 fewer"
+    return f'{abs(change):,.0f} more' if change > 0 else f'{abs(change):,.0f} fewer'
+
+
+waste_change = suggested['Waste'] - normal['Waste']
+missed_change = suggested['Shortage'] - normal['Shortage']
 
 if suggested['Cost'] < normal['Cost']:
     saving = (normal['Cost'] - suggested['Cost']) / normal['Cost'] * 100
-    st.success(f'For this meal, the suggested order is **{saving:.0f}% cheaper** than ordering the normal forecast.')
+    st.success(
+        f'**In simple words:** with the suggested amount, {more_or_fewer(waste_change)} meals are wasted and '
+        f'{more_or_fewer(missed_change)} customers go without a meal. Because a missed order counts {r} times '
+        f'a wasted meal, the total cost is **{saving:.0f}% lower** '
+        f'({suggested["Cost"]:,.0f} instead of {normal["Cost"]:,.0f}).'
+    )
 elif suggested['Cost'] > normal['Cost']:
-    st.warning('For this meal the normal forecast happened to be cheaper. Over all meals and centres, the suggested '
-               'order is cheaper on average (see the Cost results page).')
+    st.warning(
+        f'**In simple words:** for this meal the normal forecast happened to be cheaper '
+        f'({normal["Cost"]:,.0f} against {suggested["Cost"]:,.0f}). This can happen for one meal. '
+        'Over all meals and centres, the suggested order is cheaper on average (see the Cost results page).'
+    )
 else:
-    st.info('For this meal both orders give the same cost.')
+    st.info('For this meal both ways give the same cost.')
