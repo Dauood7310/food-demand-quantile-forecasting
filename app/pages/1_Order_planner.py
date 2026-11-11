@@ -63,6 +63,19 @@ col3.metric(
          'the more a missed order costs, the higher the safety level. '
          'In the report this is called the quantile level.')
 
+st.markdown(
+    f'''
+**What your choices mean**
+
+- **Centre** - the kitchen that cooks the meals: {centre_name[centre]}. The data has no real names, only numbers and codes.
+- **Meal** - the meal you plan for: {meal_name[meal]}.
+- **Cost ratio: {r} to 1** - you said one missed order is {r} times as costly as one wasted meal.
+  *Example: if a wasted meal costs you 3, a missed order costs you {3 * r:g}.*
+- **Safety level: {tau * 100:.0f}%** - for this cost ratio, the best order is the amount that is enough in about
+  {tau * 100:.0f} out of 100 weeks. A higher cost ratio gives a higher safety level, and so a bigger order.
+'''
+)
+
 # 2. forecast and suggested order for each week
 rows = forecasts[(forecasts['center_id'] == centre) & (forecasts['meal_id'] == meal)].sort_values('week')
 quantiles = rows[[f'LightGBM q{t}' for t in TAUS]].values
@@ -98,6 +111,24 @@ col2.line_chart(plan, x='Week', y=['Normal forecast', 'Suggested order', 'Real o
                 color=['#1f77b4', '#d62728', '#000000'], y_label='Orders')
 st.caption('Blue = normal forecast, red = suggested order, black = real orders. '
            'Weeks with no real orders (meal not on offer) are not shown.')
+first = plan.iloc[0]
+difference = first['Suggested order'] - first['Normal forecast']
+st.markdown(
+    f'''
+**What the columns mean** (the examples use week {first["Week"]}, the first row)
+
+- **Week** - the week we plan for. Weeks 136 to 145 are the 10 weeks after the forecast was made.
+- **Normal forecast** - the model's one best guess of how many meals will be ordered.
+  *Example: {first["Normal forecast"]:,} meals.* It does not look at your costs.
+- **Suggested order** - how many meals this page tells the kitchen to make. It is the forecast at your safety level
+  ({tau * 100:.0f}%). *Example: {first["Suggested order"]:,} meals, which is {abs(difference):,}
+  {"more" if difference >= 0 else "fewer"} than the normal forecast.*
+- **Real orders** - how many meals customers really ordered. *Example: {first["Real orders"]:,} meals.*
+  A real planner would not know this number yet. It is shown only to check how good the suggestion was.
+
+In the chart, the same three numbers are drawn as lines for all 10 weeks.
+'''
+)
 with st.expander('Why are the real orders sometimes far from the forecast?'):
     st.write(
         'A forecast is a good guess, not a promise. On average the model is wrong by about 29 meals in every 100. '
