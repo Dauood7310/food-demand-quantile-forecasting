@@ -625,6 +625,9 @@ They used the same data and the same test weeks (136–145), so this is a fair c
 
 ## 10. Questions people may ask, with short answers
 
+The main questions are below. A longer list (more than 120 questions on every part of the project) is in
+[RESEARCH_QA.md](RESEARCH_QA.md).
+
 ### About the problem and the gap
 
 **Q: Why is this problem important?**
