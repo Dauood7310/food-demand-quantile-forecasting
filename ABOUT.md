@@ -242,82 +242,369 @@ rule, **not** from looking at the test weeks, so there is no cheating.
 
 ## 8. Main results
 
-### First: the three simple models (notebook 04)
+This part explains every result, step by step. You do not need to know machine learning to read it.
+
+### 8.1 Before you read the numbers
+
+**What was tested?** The models made **98,475 forecasts** in the 3 test rounds. Each forecast is "how many of
+this meal will this centre sell in this week?". In those test weeks, people really ordered about **24.5 million meals**.
+A normal forecast is for about **135 meals** (the middle value), but some are for thousands.
+
+**How do we score a forecast?** We compare the guess with what really happened.
+
+> **Example:** the model guessed 90 meals, and 100 were really ordered. The **error** is 10 meals.
+
+Because there are 98,475 forecasts, we need a way to put all the errors into one number. There are several
+ways, and each one tells us something a little different:
+
+| Score | How it is worked out | Example | Good value |
+|---|---|---|---|
+| **WAPE** (main score) | Add up all the errors, divide by all the real orders | Real orders: 100 + 200 = 300. Errors: 10 + 50 = 60. WAPE = 60 ÷ 300 = **20%** | Low. 0% = perfect |
+| **MAE** | The average error, in meals | Errors of 10 and 50 → MAE = **30 meals** | Low |
+| **RMSE** | Like MAE, but big errors are punished more | Errors of 10 and 50 → RMSE = **36 meals** (the 50 counts extra) | Low |
+| **RMSLE** | The error in "percent-like" terms, so small and big meals count the same | Guessing 20 when it was 10 is as bad as guessing 2,000 when it was 1,000 | Low |
+| **Bias** | The average of (guess − real). Shows the direction of the error | Bias −20 = on average the guess is 20 meals **too low** | Near 0 |
+| **Over-forecast %** | How often the guess was above the real number | 46% = too high 46 times in 100, too low 54 times | Near 50% |
+
+**Why is WAPE the main score?** It is easy to read ("wrong by X meals in every 100") and it is fair to both small
+and big meals. RMSE and RMSLE are included because the earlier study (Panda & Mohanty) used them.
+
+**"Average of 3 rounds".** Every model was tested three times, on three different sets of weeks (see section 7).
+The tables show the average of the three tests, so one lucky or unlucky set of weeks cannot decide the result.
+
+---
+
+### 8.2 Step 1 – The three simple models (notebook 04)
 
 These are the "easy rivals". A smart model must do better than them, or it is not worth using.
 
-| Method | How it guesses | How wrong (WAPE) | Simple meaning |
-|---|---|---|---|
-| Copy last week | Last week 150, so guess 150 | 51% | Wrong by about 51 meals for every 100 ordered |
-| 26-week average | Average of the last 26 weeks | 38% | Wrong by about 38 meals per 100 |
-| **Linear Regression** | Past orders + a bit for offers − a bit for high price | **32%** | Wrong by about 32 meals per 100 (best of the three) |
+| Method | How it guesses | WAPE | RMSE | MAE | RMSLE | Bias | Over-forecast % |
+|---|---|---|---|---|---|---|---|
+| Copy last week | Last week 150, so guess 150 | 50.9% | 294 | 127 | 0.81 | −11 | 50% |
+| 26-week average | Average of the last 26 weeks | 38.4% | 237 | 96 | 0.62 | −23 | 52% |
+| **Linear Regression** | Past orders + a bit for offers − a bit for a high price | **32.0%** | **183** | **80** | **0.51** | −28 | 46% |
 
-What we learned:
+**How to read it:**
 
-- **Linear Regression is the best simple model** in every round. The smart models must beat 32%.
-- **Copying last week only works for next week.** It is wrong by 34 per 100 one week ahead, but by 56 per 100
-  ten weeks ahead. Orders change a lot from week to week, so last week is a poor guide far ahead.
-- **Linear Regression stays steady** (about 30 to 33 per 100) for every week ahead, because it knows the planned
-  price and offers.
-- **All three guess too low** (bias −11 to −28 meals, and only 46–52% of guesses are too high).
-  *Why:* the models aim for the "normal" week, not the average. *Example:* a meal sells 100, 100, 100 and then 500
-  in an offer week. The normal week is 100, but the average is 200, so the guess misses the big weeks.
-  Too-low guesses mean food runs out. The quantile (safe-level) models in notebook 06 fix this.
-- **Round 2 (weeks 126–135) is the hardest** round for all models.
+- **Copy last week: 50.9%.** For every 100 meals people ordered, this method is wrong by about 51 meals. That is
+  very poor: it gets about half the meals wrong.
+- **26-week average: 38.4%.** Wrong by about 38 meals in every 100. Better, because an average is calmer than one single week.
+- **Linear Regression: 32.0%.** Wrong by about 32 meals in every 100. This is the best simple method.
 
-### RQ1 – Which model is most accurate? (average of 3 rounds, lower is better)
+**What we learned:**
 
-| Model | WAPE | RMSE | MAE | RMSLE |
+- **Linear Regression is the best simple model in every round** (31.0% to 33.0%). So 32% is the score the smart models must beat.
+- **Copying last week only works for next week.** It is wrong by 34 in 100 for next week, but by 56 in 100 for ten
+  weeks ahead. *Why:* orders jump up and down a lot, so last week tells you little about ten weeks later.
+- **Linear Regression stays steady** (about 30 to 34 in 100) for every week ahead, because it knows the planned price and offers.
+- **All three guess too low** (the bias is negative). *Why:* the models aim for the "normal" week, not the average.
+  *Example:* a meal sells 100, 100, 100 and then 500 in an offer week. The normal week is 100, but the average is 200.
+  A guess near 100 is right for normal weeks but far too low overall.
+
+---
+
+### 8.3 Step 2 – The tree models (notebook 05) – answers RQ1
+
+**RQ1: Are tree models more accurate than simple methods?**
+
+| Model | Type | WAPE | RMSE | MAE | RMSLE | Bias | Over-forecast % |
+|---|---|---|---|---|---|---|---|
+| Copy last week | Simple | 50.9% | 294 | 127 | 0.81 | −11 | 50% |
+| 26-week average | Simple | 38.4% | 237 | 96 | 0.62 | −23 | 52% |
+| Linear Regression | Simple | 32.0% | 183 | 80 | 0.51 | −28 | 46% |
+| Random Forest | Tree | 29.4% | 164 | 73 | 0.49 | −26 | 45% |
+| XGBoost | Tree | 28.7% | 152 | 71 | 0.49 | −23 | 46% |
+| **LightGBM** | Tree | **28.6%** | **152** | **71** | **0.49** | −22 | 46% |
+
+**Answer: yes.** All three tree models beat all three simple methods.
+
+**How to read it:**
+
+- **LightGBM: 28.6%.** For every 100 meals ordered, LightGBM is wrong by about 29. Linear Regression is wrong by 32,
+  and copying last week by 51.
+- **Is 29 in 100 good?** Yes, for this problem. The model guesses up to 10 weeks ahead, for one meal at one centre,
+  and orders jump a lot because of offers. A guess for one meal in one place is always much less exact than a guess
+  for a whole company's total.
+- **MAE 71.** A typical LightGBM guess is off by about 71 meals. *Example:* real orders 300, guess 229.
+- **RMSE 152** is bigger than MAE 71 because a few very large misses (offer weeks) count extra in RMSE.
+- **How much better?** LightGBM's error is **10.5% smaller** than Linear Regression's (32.0 → 28.6) and
+  **44% smaller** than copying last week's (50.9 → 28.6).
+
+**The same result in each of the 3 rounds (WAPE):**
+
+| Model | Round 1 (weeks 116–125) | Round 2 (126–135) | Round 3 (136–145) | Average |
 |---|---|---|---|---|
-| Copy last week | 50.9% | 294 | 127 | 0.81 |
-| 26-week average | 38.4% | 237 | 96 | 0.62 |
-| Linear Regression | 32.0% | 183 | 80 | 0.51 |
-| Random Forest | 29.4% | 164 | 73 | 0.49 |
-| XGBoost | 28.7% | 152 | 71 | 0.49 |
-| **LightGBM** | **28.6%** | **152** | **71** | **0.49** |
+| Copy last week | 52.1% | 52.2% | 48.5% | 50.9% |
+| 26-week average | 39.1% | 41.9% | 34.2% | 38.4% |
+| Linear Regression | 32.0% | 33.0% | 31.0% | 32.0% |
+| Random Forest | 29.0% | 31.3% | 27.9% | 29.4% |
+| XGBoost | 27.7% | 30.7% | 27.5% | 28.7% |
+| LightGBM | 27.7% | 30.8% | 27.4% | 28.6% |
 
-- **Answer: yes.** All three tree models beat every simple method in every round. The corrected DM test says this
-  is real, not luck (p < 0.001).
-- LightGBM and XGBoost are a tie (p = 0.96). LightGBM also beats Random Forest (p = 0.002).
-- *Example:* if the total real orders are 1,000, LightGBM is wrong by about 286 in total, and Linear Regression by about 320.
-- All models forecast **too low** on average. Only about 46% of forecasts were above the real orders.
+The order of the models is the same in every round. So the result is stable, not luck from one set of weeks.
+Round 2 is the hardest for every model, and round 3 the easiest.
 
-### RQ2 – Are the quantile models honest?
+**Does the error grow when we look further ahead? (WAPE by weeks ahead)**
 
-- **Answer: yes.** A 0.8 forecast was enough in about 77–80% of cases (quantile LightGBM 77%, quantile XGBoost 78%,
-  Linear QR 80%). That is close to the promised 80%.
-- The normal LightGBM forecast was enough only 46% of the time, so it is not a "safe" order.
-- Quantile LightGBM has a lower pinball loss than the normal forecast at every level. The corrected DM test
-  confirms this at levels 0.5, 0.7 and 0.9 (p < 0.001).
+| Weeks ahead | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Copy last week | 33.8 | 44.7 | 54.7 | 53.0 | 52.4 | 49.5 | 54.8 | 56.8 | 54.4 | 55.8 |
+| Linear Regression | 31.8 | 29.7 | 30.9 | 29.9 | 31.4 | 31.8 | 33.3 | 34.4 | 33.6 | 33.4 |
+| LightGBM | 26.5 | 27.2 | 28.1 | 27.7 | 28.2 | 28.0 | 29.7 | 29.7 | 30.4 | 31.7 |
 
-### RQ3 – Which order is cheapest? (normal LightGBM forecast = 100, lower is cheaper)
+*How to read it:* guessing next week, LightGBM is wrong by about 27 in 100. Guessing ten weeks ahead, by about 32
+in 100. The further ahead, the harder, but LightGBM is the best at every distance.
 
-| A missed order costs… | Best level | Normal Linear Regression | Safety stock | Quantile XGBoost | **Quantile LightGBM** |
+**Is the difference real, or just luck?** A statistical test (the Diebold–Mariano test) answers this. It gives a
+"p-value". A small p-value means the difference is very unlikely to be just luck. Below 0.05 is accepted as real.
+
+| Comparison | p-value | Meaning |
+|---|---|---|
+| LightGBM vs Linear Regression | below 0.001 | Really better (very unlikely to be luck) |
+| XGBoost vs Linear Regression | below 0.001 | Really better |
+| Random Forest vs Linear Regression | below 0.001 | Really better |
+| LightGBM vs Random Forest | 0.002 | Really better |
+| LightGBM vs XGBoost | 0.96 | **No real difference: a tie** |
+
+**What does LightGBM look at most?** (share of its "decisions")
+
+| Input | Share | Simple meaning |
+|---|---|---|
+| Average orders of the last 26 weeks | 43.6% | "How much does this meal usually sell here?" |
+| Average orders of all past weeks | 36.9% | The long-term level |
+| Price compared with the usual price | 4.7% | "Is it cheaper than normal this week?" |
+| Email offer in that week | 3.7% | "Is it being advertised?" |
+| Which meal it is | 2.9% | Some meals behave differently |
+| Home-page offer in that week | 1.7% | "Is it shown on the home page?" |
+| Last week's orders | 0.6% | Almost not used |
+
+*How to read it:* the model mostly asks "what does this meal normally sell?", then adjusts for price and offers.
+Last week alone matters very little, which matches the poor result of "copy last week".
+
+**One problem remains: the guesses are too low.** LightGBM is above the real orders only 46 times in 100, and on
+average 22 meals too low. If a kitchen made exactly what LightGBM says, **food would run out more often than it
+would be wasted**. The next step fixes this.
+
+---
+
+### 8.4 Step 3 – The "safe-level" (quantile) models (notebook 06) – answers RQ2
+
+**RQ2: Do quantile models change how often we guess too high or too low? And can we trust their levels?**
+
+**The idea again.** A normal model gives one guess ("100 meals"). A quantile model gives a guess for a **level** you choose:
+
+> **Example for one meal and week:**
+> - Level 0.3 → "80 meals" (enough in about 3 of 10 weeks, a small order)
+> - Level 0.5 → "100 meals" (enough in about 5 of 10 weeks, the middle)
+> - Level 0.8 → "130 meals" (enough in about 8 of 10 weeks, a safe order)
+> - Level 0.9 → "160 meals" (enough in about 9 of 10 weeks, a very safe order)
+
+**Test 1 – Coverage: do the levels keep their promise?**
+Coverage = in how many cases the real orders were at or below the forecast (the forecast was "enough").
+
+| Level you ask for | Linear QR | Quantile XGBoost | Quantile LightGBM | Normal LightGBM |
+|---|---|---|---|---|
+| 0.3 (should be 30%) | 29.8% | 30.4% | 30.6% | 45.9% |
+| 0.4 (should be 40%) | 40.0% | 40.0% | 40.2% | 45.9% |
+| 0.5 (should be 50%) | 50.0% | 49.7% | 49.3% | 45.9% |
+| 0.6 (should be 60%) | 60.1% | 59.0% | 58.0% | 45.9% |
+| 0.7 (should be 70%) | 69.8% | 68.6% | 67.5% | 45.9% |
+| 0.8 (should be 80%) | 79.8% | 77.9% | 77.4% | 45.9% |
+| 0.9 (should be 90%) | 89.7% | 88.2% | 87.4% | 45.9% |
+
+**Answer: yes.**
+
+- *How to read it:* you ask quantile LightGBM for level 0.8, hoping the number is enough in 80% of cases. It was
+  enough in 77.4%. That is close to the promise. At the high levels the tree models are 2–3 points under the target.
+- **The normal LightGBM is always at 45.9%.** It gives one number only, so you cannot ask it to be safer.
+- So quantile models **do change the balance**: you decide how often you want to be "too high" (safe) or "too low".
+
+**Test 2 – Pinball loss: how good is each level?**
+Pinball loss is the score for a level forecast. It punishes the mistake that matters more for that level.
+*Example:* for level 0.8 you want to be safe, so being too low is punished 4 times more than being too high.
+Lower is better.
+
+| Level | Linear QR | Quantile XGBoost | Quantile LightGBM | Normal LightGBM |
+|---|---|---|---|---|
+| 0.3 | 31.4 | 29.3 | **29.2** | 31.4 |
+| 0.4 | 36.2 | 33.4 | **33.2** | 33.5 |
+| 0.5 | 38.9 | 35.3 | **35.0** | 35.7 |
+| 0.6 | 39.2 | 35.2 | **35.0** | 37.8 |
+| 0.7 | 37.1 | **32.8** | 33.0 | 40.0 |
+| 0.8 | 31.8 | **27.8** | 28.1 | 42.1 |
+| 0.9 | 22.0 | **19.2** | 19.5 | 44.3 |
+| **Average** | 33.8 | **30.4** | **30.4** | 37.8 |
+
+- *How to read it:* the two tree quantile models have the lowest score at every level. They are tied on average (30.4).
+- The normal forecast gets **much worse at high levels** (44.3 at level 0.9, against 19.5). One fixed guess cannot
+  act as a safe order.
+- The test says the difference between quantile LightGBM and the normal forecast is real (p below 0.001 at levels 0.5, 0.7 and 0.9).
+
+**A small extra finding.** The level-0.5 forecast of quantile LightGBM is also a slightly better "normal" guess
+than the normal LightGBM: WAPE 28.1% against 28.6%, and bias −15 against −22.
+
+**"Crossing".** Quantile LightGBM builds a separate model for each level. In about 1 of 4 forecasts, two levels
+came out in the wrong order (*example:* level 0.7 says 130 but level 0.8 says 125). The notebook sorts the numbers
+so they always go up. Quantile XGBoost builds all levels in one model and had no crossing.
+
+---
+
+### 8.5 Step 4 – Waste, shortage and cost (notebook 07) – answers RQ3
+
+**RQ3: When costs change, which model and level give the lowest cost?**
+
+**How the cost is worked out** (the data has no real prices, so we use simple rules):
+
+> **Example:** the kitchen makes what the forecast says: 100 meals.
+> - Only 80 are ordered → **20 wasted**. Each wasted meal costs **1**. Cost = 20.
+> - 120 are ordered → **20 missed orders**. Each missed order costs **1 × the cost ratio**.
+>   If the ratio is 3, cost = 20 × 3 = 60.
+
+**The cost ratio** says how many times worse a missed order is than a wasted meal. We do not know the real
+ratio, so we test seven: 0.5, 1, 1.5, 2, 3, 4 and 5.
+
+**Which level should we order at?** An old stock rule (the "newsvendor rule") gives the answer:
+
+| A missed order costs… | 0.5× a wasted meal | 1× | 1.5× | 2× | 3× | 4× | 5× |
+|---|---|---|---|---|---|---|---|
+| Best level to order at | 0.33 | 0.50 | 0.60 | 0.67 | 0.75 | 0.80 | 0.83 |
+
+*Example:* if running out is 4 times worse than waste, order the number that is enough in 80% of weeks (level 0.80).
+
+**Result 1 – Total cost of each way of ordering** (normal LightGBM = 100; below 100 is cheaper):
+
+| A missed order costs… | Normal Linear Regression | Normal LightGBM | Linear QR | Quantile XGBoost | **Quantile LightGBM** |
 |---|---|---|---|---|---|
-| 0.5× a wasted meal | 0.33 | 109.7 | 99.8 | 96.0 | **95.7** |
-| 1× | 0.50 | 111.6 | 101.5 | 99.0 | **98.1** |
-| 2× | 0.67 | 113.2 | 89.3 | 86.2 | **86.2** |
-| 3× | 0.75 | 113.8 | 78.5 | 74.5 | **75.0** |
-| 5× | 0.83 | 114.5 | 64.0 | 59.0 | **59.6** |
+| 0.5× | 109.7 | 100 | 103.6 | 96.0 | **95.7** |
+| 1× | 111.6 | 100 | 108.9 | 99.0 | **98.1** |
+| 1.5× | 112.6 | 100 | 103.6 | 93.2 | **92.5** |
+| 2× | 113.2 | 100 | 97.0 | **86.2** | **86.2** |
+| 3× | 113.8 | 100 | 84.9 | **74.5** | 75.0 |
+| 4× | 114.2 | 100 | 75.4 | **66.0** | 66.7 |
+| 5× | 114.5 | 100 | 67.8 | **59.0** | 59.6 |
 
-- **Answer:** quantile models are the cheapest at every cost ratio.
-- Quantile LightGBM saves **2% to 40%** compared with the normal forecast. The more a missed order costs, the
-  bigger the saving. *Example:* at ratio 5, the cost drops from 100 to about 60, a 40% saving.
-- It also beats the safety stock rival by **3% to 7%** at every ratio, and the corrected DM test says this is real
-  (p below 0.05 for all ratios).
-- The ranges are narrow. *Example:* at ratio 3, the saving is 25.0%, with a range of 24.1% to 25.8%.
-- The cheapest level in the data is close to the newsvendor rule. *Example:* at ratio 1 the cheapest level is 0.5,
-  and at ratio 4 it is 0.8, exactly as the rule says.
+**Answer: the tree quantile models are the cheapest at every cost ratio.**
 
-### Compared with Panda & Mohanty (same data, same test weeks 136–145)
+- *How to read it:* take the row "3×". If a kitchen spends £100 using the normal LightGBM forecast, it would spend
+  only about **£75** using quantile LightGBM. That is a saving of 25%.
+- **The more a missed order costs, the bigger the saving:** 2% at ratio 1, 14% at ratio 2, 25% at ratio 3, 40% at ratio 5.
+- **Normal Linear Regression is always the most expensive** (10–15% more than normal LightGBM). So a more accurate
+  model does save money, but ordering at the right level saves much more.
+- Quantile XGBoost and quantile LightGBM are almost the same.
+
+**Result 2 – What happens to waste and shortage?**
+(Waste % and shortage % are shares of all meals ordered. "No shortage" = how often nobody went without a meal.)
+
+| A missed order costs… | Way of ordering | Waste % | Shortage % | No shortage in… |
+|---|---|---|---|---|
+| any | Normal LightGBM | 10.1% | 18.6% | 46 of 100 cases |
+| 0.5× | Quantile LightGBM (level 0.33) | 6.1% | 24.8% | 35 of 100 |
+| 1× | Quantile LightGBM (level 0.50) | 11.2% | 16.9% | 50 of 100 |
+| 2× | Quantile LightGBM (level 0.67) | 18.5% | 11.1% | 65 of 100 |
+| 3× | Quantile LightGBM (level 0.75) | 24.0% | 8.5% | 73 of 100 |
+| 5× | Quantile LightGBM (level 0.83) | 32.0% | 5.9% | 82 of 100 |
+
+- *How to read it:* the normal forecast always wastes 10 meals and misses 19 orders in every 100, whatever the costs are.
+- The quantile forecast **moves with the costs**. When missed orders are expensive (ratio 5), it makes more food:
+  waste rises to 32 in 100, but missed orders fall to 6 in 100, and customers are fully served in 82 of 100 cases.
+- When waste is the bigger problem (ratio 0.5), it makes less food: waste falls to 6 in 100.
+- **This is the trade-off:** you cannot cut waste and shortage at the same time. You choose which one hurts more,
+  and the quantile model gives the right order for that choice.
+
+**Result 3 – Does the stock rule really work on this data?**
+We tried ordering at every level and looked for the cheapest one.
+
+| A missed order costs… | Level the rule says | Cheapest level found |
+|---|---|---|
+| 0.5× | 0.33 | 0.4 |
+| 1× | 0.50 | 0.5 |
+| 1.5× | 0.60 | 0.6 |
+| 2× | 0.67 | 0.7 |
+| 3× | 0.75 | 0.8 |
+| 4× | 0.80 | 0.8 |
+| 5× | 0.83 | 0.9 |
+
+The cheapest level is the same as the rule, or the nearest level we tested. So the rule works on real meal data.
+
+---
+
+### 8.6 Step 5 – Extra checks: can we trust the savings? (notebook 08)
+
+**Check 1 – A fairer rival: the safety stock.**
+Real planners do not order exactly the forecast. They add "a little extra just in case" (a safety stock).
+So we built this rival too: the normal LightGBM forecast plus an extra amount learned from its own past mistakes.
+*Example:* if the model was usually about 15% too low in the past weeks, add about 15%.
+
+| A missed order costs… | Normal LightGBM | Safety stock | Quantile LightGBM | Saving vs safety stock |
+|---|---|---|---|---|
+| 0.5× | 100 | 99.8 | **95.7** | 4.1% |
+| 1× | 100 | 101.5 | **98.1** | 3.3% |
+| 1.5× | 100 | 95.7 | **92.5** | 3.4% |
+| 2× | 100 | 89.3 | **86.2** | 3.4% |
+| 3× | 100 | 78.5 | **75.0** | 4.5% |
+| 4× | 100 | 70.3 | **66.7** | 5.1% |
+| 5× | 100 | 64.0 | **59.6** | 6.8% |
+
+- *How to read it:* the safety stock is a good trick. It gets most of the saving (for ratio 5: from 100 down to 64).
+- But **quantile LightGBM is still 3% to 7% cheaper** at every ratio. *Why:* the safety stock adds the same share to
+  every meal, while the quantile model knows which meals are steady and which are jumpy, and adds more only where needed.
+
+**Check 2 – How sure are we? (the 95% range)**
+We picked the 3,597 meal–centre pairs again at random, 1,000 times, and worked out the saving each time
+(this is called a bootstrap). The range shows where the saving falls 95% of the time.
+
+| A missed order costs… | Saving vs normal forecast (range) | Saving vs safety stock (range) |
+|---|---|---|
+| 0.5× | 4.3% (3.6 to 5.0) | 4.1% (3.6 to 4.7) |
+| 1× | 1.9% (1.4 to 2.4) | 3.3% (2.8 to 3.8) |
+| 1.5× | 7.5% (6.8 to 8.1) | 3.4% (2.8 to 3.9) |
+| 2× | 13.8% (13.0 to 14.5) | 3.4% (2.8 to 4.2) |
+| 3× | 25.0% (24.1 to 25.8) | 4.5% (3.6 to 5.4) |
+| 4× | 33.3% (32.4 to 34.1) | 5.1% (4.0 to 6.2) |
+| 5× | 40.4% (39.5 to 41.2) | 6.8% (5.6 to 8.1) |
+
+- *How to read it:* at ratio 3, the saving is 25.0%, and we are fairly sure the true saving is between 24.1% and 25.8%.
+- **Every range is above zero.** So in every case, quantile LightGBM really is cheaper.
+
+**Check 3 – A stricter test.**
+The first test for "real or luck?" assumed each week is separate. But a busy week is often followed by another
+busy week, and we only have 30 test weeks. So we repeated every test with a stricter version (the "corrected"
+Diebold–Mariano test). **All the main results stayed real:**
+
+- tree models vs Linear Regression: p below 0.001;
+- quantile LightGBM vs normal forecast, on cost: p below 0.001 at every ratio;
+- quantile LightGBM vs safety stock, on cost: p is 0.03 or lower at every ratio (all below 0.05).
+
+---
+
+### 8.7 Compared with the earlier study (Panda & Mohanty)
+
+They used the same data and the same test weeks (136–145), so this is a fair comparison.
 
 | | RMSE | MAE |
 |---|---|---|
+| Their Random Forest | 228.9 | 115.9 |
+| Their LightGBM | 194.7 | 104.5 |
+| Their XGBoost | 205.3 | 106.2 |
 | Their best tree model (CatBoost) | 186.7 | 99.4 |
-| My LightGBM | 105.7 | 62.4 |
+| **My LightGBM (round 3)** | **105.7** | **62.4** |
 
-My tree models make about **40% smaller** errors (RMSE and MAE). Their RMSLE is lower (0.29 vs my 0.48), but their
-steps are not fully explained, so that number is hard to compare directly.
+- *How to read it:* on the same weeks, my LightGBM is off by about 62 meals on average, and their best tree model by about 99.
+  My errors are about **40% smaller**.
+- Their RMSLE is lower (0.29 against my 0.48). But their paper does not fully explain how the inputs were built,
+  and some of its numbers do not match each other, so that one score is hard to compare.
+- Their deep learning models (LSTM) seem to be reported on a different scale, so they cannot be compared with these numbers.
+
+---
+
+### 8.8 All the results in six lines
+
+1. **Simple methods:** the best is Linear Regression, wrong by 32 meals in every 100.
+2. **Tree models are better:** LightGBM and XGBoost are wrong by about 29 in every 100, and the difference is real.
+3. **But all normal forecasts are a bit too low,** so food would run out more often than it is wasted.
+4. **Quantile models fix this:** you choose a safety level, and the level keeps its promise (0.8 → enough in about 77–80% of cases).
+5. **Ordering at the right level saves money:** 2% to 40% against the normal forecast, more when missed orders are costly.
+6. **The saving is real:** it is still 3% to 7% against a safety stock, the ranges are narrow, and the stricter test agrees.
 
 ---
 
