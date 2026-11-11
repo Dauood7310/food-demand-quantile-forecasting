@@ -36,6 +36,30 @@ st.write(
     f'In simple words: order the amount that is enough in about **{tau * 100:.0f} out of 100 weeks**.'
 )
 
+with st.expander('What is the cost ratio, and what is the unit of the cost?'):
+    st.markdown(
+        f'''
+**Cost ratio** - how many times worse a missed order is than a wasted meal.
+To find your own ratio, divide what you lose on a missed order by what you lose on a wasted meal.
+*Example: a wasted meal loses 3 of food and a missed order loses a sale of 9, so the ratio is 9 / 3 = 3.*
+
+| Cost ratio | Meaning |
+|---|---|
+| 0.5 | A missed order is only half as bad as a wasted meal |
+| 1 | Both mistakes are equally bad |
+| 3 | A missed order is 3 times worse than a wasted meal |
+| 5 | A missed order is 5 times worse than a wasted meal |
+
+**Unit of the cost** - the cost is **not money** (no pounds or dollars), because the data has no real prices.
+It is counted in **"wasted meals"**: each wasted meal counts as 1, and each missed order counts as the cost ratio.
+*Example with your ratio of {r}: 20 wasted meals and 10 missed orders give a cost of 20 x 1 + 10 x {r} = {20 + 10 * r:g}.
+That means "as bad as throwing away {20 + 10 * r:g} meals".*
+
+A company can turn it into money with its own prices.
+*Example: if one wasted meal really costs 3, a cost of {20 + 10 * r:g} is {(20 + 10 * r) * 3:g} in money.*
+'''
+    )
+
 sim = load_table('07_simulation_mean.csv')
 sim = sim[sim['r'] == r].set_index('policy')
 normal = sim.loc['Point LightGBM']
