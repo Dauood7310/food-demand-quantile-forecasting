@@ -85,13 +85,24 @@ Choose the "Python 3 (food-demand)" kernel and run the notebooks in order.
 
 ### The app
 
-A small Streamlit app shows the results in simple words and has an order planner. From the project folder:
+A small Streamlit app shows the results in simple words and has an order planner.
+The saved results are already in this repository, so the app works right after the setup above
+(the notebooks do not need to be run first). From the project folder:
 
 ```bat
+.venv\Scripts\activate
 streamlit run app/Home.py
 ```
 
-It opens in the browser. The app only reads the saved results, so run the notebooks first.
+It opens in the browser at http://localhost:8501. Press `Ctrl + C` in the window to stop it.
+(If Streamlit asks for an email the first time, just press Enter.)
+
+Pages: Home, The data, Accuracy results, Quantile results, Cost results, Order planner.
+
+### More about the research
+
+- [ABOUT.md](ABOUT.md) - the project, the words and all results explained in easy English
+- [RESEARCH_QA.md](RESEARCH_QA.md) - expected questions and short answers
 
 | Notebook | What it does |
 |---|---|
