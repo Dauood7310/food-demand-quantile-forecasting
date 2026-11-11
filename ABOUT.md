@@ -77,6 +77,8 @@ wasted meal, it is better to make a bit more, and quantile models do this well.
 | **RMSLE** | The error on the log scale, so it looks at errors in percent-like terms. | Missing by 10 on a week of 20 counts more than missing by 10 on a week of 1,000. |
 | **WAPE** | Total error divided by total orders, in percent. | Total orders 1,000, total error 320, so WAPE = 32%. |
 | **Bias** | Is the forecast too high or too low on average? | Bias −20 means the forecast is 20 meals too low on average. |
+| **Over-forecast %** | How often the forecast was higher than the real orders. 50% = balanced. | 46% means the guess was too high in 46 of 100 cases and too low in 54. |
+| **Middle value (median) vs average** | The middle value is the "normal" week; the average is pulled up by a few huge weeks. | Weeks of 100, 100, 100 and 500: the middle value is 100, but the average is 200. |
 | **Pinball loss** | The score for quantile forecasts. Lower is better. | For a 0.8 forecast, being too low is punished 4 times more than being too high. |
 | **Coverage** | How often real orders were below the forecast. | A 0.8 forecast should be "enough" in about 80 of 100 weeks. |
 | **Newsvendor rule** | An old rule: the more a missed sale costs, the more you should stock. | A newspaper seller who earns a lot per paper but loses little on unsold ones should keep extra papers. |
@@ -239,6 +241,29 @@ rule, **not** from looking at the test weeks, so there is no cheating.
 ---
 
 ## 8. Main results
+
+### First: the three simple models (notebook 04)
+
+These are the "easy rivals". A smart model must do better than them, or it is not worth using.
+
+| Method | How it guesses | How wrong (WAPE) | Simple meaning |
+|---|---|---|---|
+| Copy last week | Last week 150, so guess 150 | 51% | Wrong by about 51 meals for every 100 ordered |
+| 26-week average | Average of the last 26 weeks | 38% | Wrong by about 38 meals per 100 |
+| **Linear Regression** | Past orders + a bit for offers − a bit for high price | **32%** | Wrong by about 32 meals per 100 (best of the three) |
+
+What we learned:
+
+- **Linear Regression is the best simple model** in every round. The smart models must beat 32%.
+- **Copying last week only works for next week.** It is wrong by 34 per 100 one week ahead, but by 56 per 100
+  ten weeks ahead. Orders change a lot from week to week, so last week is a poor guide far ahead.
+- **Linear Regression stays steady** (about 30 to 33 per 100) for every week ahead, because it knows the planned
+  price and offers.
+- **All three guess too low** (bias −11 to −28 meals, and only 46–52% of guesses are too high).
+  *Why:* the models aim for the "normal" week, not the average. *Example:* a meal sells 100, 100, 100 and then 500
+  in an offer week. The normal week is 100, but the average is 200, so the guess misses the big weeks.
+  Too-low guesses mean food runs out. The quantile (safe-level) models in notebook 06 fix this.
+- **Round 2 (weeks 126–135) is the hardest** round for all models.
 
 ### RQ1 – Which model is most accurate? (average of 3 rounds, lower is better)
 
