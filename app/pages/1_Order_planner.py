@@ -115,7 +115,7 @@ plan['Real orders'] = rows['num_orders'].astype(int).values      # only to check
 st.subheader('2. Plan for the next 10 weeks',
              help='For each week: the normal forecast, the order this page suggests for your costs, '
                   'and (only to check) what customers really ordered.')
-col1, col2 = st.columns([1, 1.4])
+col1, col2 = st.columns([1.5, 1])
 col1.dataframe(
     plan, hide_index=True, width='stretch',
     column_config={
