@@ -65,3 +65,30 @@ def diebold_mariano(loss_a, loss_b):
     dm = d.mean() / np.sqrt(d.var(ddof=1) / len(d))
     p_value = 2 * (1 - stats.norm.cdf(abs(dm)))
     return dm, p_value
+
+
+def diebold_mariano_hac(loss_a, loss_b, lag=3):
+    """Diebold-Mariano test, corrected version (used in notebook 08).
+
+    Two corrections to the simple version above:
+    - Newey-West variance: the loss in one week can be related to the loss in the next weeks,
+      so the variance includes the covariances up to `lag` weeks (with Bartlett weights).
+    - Harvey-Leybourne-Newbold: small-sample correction, and the p-value comes from a
+      t distribution with n - 1 degrees of freedom instead of the normal distribution.
+    lag = 3 is about n^(1/3) for n = 30 test weeks.
+    """
+    from scipy import stats
+    d = np.asarray(loss_a, dtype=float) - np.asarray(loss_b, dtype=float)
+    n = len(d)
+    centred = d - d.mean()
+    variance = np.sum(centred ** 2) / n
+    for k in range(1, lag + 1):
+        weight = 1 - k / (lag + 1)
+        variance += 2 * weight * np.sum(centred[k:] * centred[:-k]) / n
+    dm = d.mean() / np.sqrt(variance / n)
+
+    h = lag + 1
+    correction = np.sqrt((n + 1 - 2 * h + h * (h - 1) / n) / n)
+    dm = dm * correction
+    p_value = 2 * stats.t.sf(abs(dm), df=n - 1)
+    return dm, p_value
