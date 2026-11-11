@@ -83,6 +83,16 @@ jupyter lab
 
 Choose the "Python 3 (food-demand)" kernel and run the notebooks in order.
 
+### The app
+
+A small Streamlit app shows the results in simple words and has an order planner. From the project folder:
+
+```bat
+streamlit run app/Home.py
+```
+
+It opens in the browser. The app only reads the saved results, so run the notebooks first.
+
 | Notebook | What it does |
 |---|---|
 | 01_download_dataset | where the data comes from, md5 checksums and a quick check of rows / weeks / centres / meals (the data is already in `data/raw`, no need to run it) |
@@ -91,3 +101,5 @@ Choose the "Python 3 (food-demand)" kernel and run the notebooks in order.
 | 04_baselines | rolling-origin folds (`src/folds.py`), metrics (`src/metrics.py`), naive / 26-week moving average / Linear Regression baselines, results in `results/tables`, figure fig22 |
 | 05_tree_models | Random Forest, XGBoost and LightGBM (one global model, horizon as a feature), results in `results/tables`, Diebold-Mariano tests, figures fig23-fig25 |
 | 06_quantile_models | linear quantile regression, quantile XGBoost and quantile LightGBM for tau 0.3-0.9, pinball loss and coverage, figures fig26-fig28 |
+| 07_simulation | turns the forecasts into orders and simulates waste, shortage and cost for cost ratios 0.5-5 (newsvendor level), Diebold-Mariano tests, figures fig29-fig31 |
+| 08_robustness | safety-stock baseline, corrected Diebold-Mariano test and bootstrap confidence intervals for the savings, figures fig32-fig33 |
